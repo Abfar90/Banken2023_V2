@@ -2,6 +2,7 @@
 
 Simple console app to to mimic the functions of a bank created with C#, Spectre.Console, MSSQL and Entity Framework.
 In the app its possible to see bank balance, withdraw, deposit and transfer money between accounts.
+A relational database was created using MSQL 2018, an SQL dump recreating the DB along can be found in the repo.
 
 ## General Info
 
