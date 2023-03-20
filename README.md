@@ -4,13 +4,6 @@ Simple console app to to mimic the functions of a bank created with C#, Spectre.
 In the app its possible to see bank balance, withdraw, deposit and transfer money between accounts.
 
 ## General Info
- 
-* [Styling](#styling)  
-* [Class Structure](#class-structure) 
-* [Database](#database)
-* [UI](#ui)
-* [App](#app)
-
 
 ### Styling
 
