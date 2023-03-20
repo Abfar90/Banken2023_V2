@@ -10,4 +10,10 @@ public partial class CheckingAccount
     public decimal BalanceChecking { get; set; }
 
     public virtual User User { get; set; } = null!;
+
+    public CheckingAccount(int userId, decimal balanceChecking)
+    {
+        UserId = userId;
+        BalanceChecking = balanceChecking;
+    }
 }

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Banken2023_V2.Models;
+﻿namespace Banken2023_V2.Models;
 
 public partial class User
 {
@@ -11,16 +8,17 @@ public partial class User
 
     public string Password { get; set; } = null!;
 
-    public User(int userId, string username, string password)
-    {
-        UserId = userId;
-        Username = username;
-        Password = password;
-    }
+    public virtual CheckingAccount? CheckingAccount { get; set; }
+
+    public virtual SavingAccount? SavingAccount { get; set; }
 
     public User(string username, string password)
     {
         Username = username;
         Password = password;
+    }
+
+    public User()
+    {
     }
 }

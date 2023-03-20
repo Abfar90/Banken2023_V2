@@ -19,8 +19,6 @@ public partial class BankDbContext : DbContext
 
     public virtual DbSet<SavingAccount> SavingAccounts { get; set; }
 
-    public virtual DbSet<Transaction> Transactions { get; set; }
-
     public virtual DbSet<User> Users { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -31,44 +29,32 @@ public partial class BankDbContext : DbContext
     {
         modelBuilder.Entity<CheckingAccount>(entity =>
         {
-            entity.HasNoKey();
+            entity.HasKey(e => e.UserId);
 
-            entity.Property(e => e.BalanceChecking).HasColumnType("money");
-            entity.Property(e => e.UserId).HasColumnName("UserID");
+            entity.Property(e => e.UserId)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("UserID");
+            entity.Property(e => e.BalanceChecking).HasColumnType("decimal(18, 2)");
 
-            entity.HasOne(d => d.User).WithMany()
-                .HasForeignKey(d => d.UserId)
+            entity.HasOne(d => d.User).WithOne(p => p.CheckingAccount)
+                .HasForeignKey<CheckingAccount>(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_CheckingAccounts_Users");
         });
 
         modelBuilder.Entity<SavingAccount>(entity =>
         {
-            entity.HasNoKey();
+            entity.HasKey(e => e.UserId);
 
-            entity.Property(e => e.BalanceSavings).HasColumnType("money");
-            entity.Property(e => e.UserId).HasColumnName("UserID");
-
-            entity.HasOne(d => d.User).WithMany()
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_SavingAccounts_Users");
-        });
-
-        modelBuilder.Entity<Transaction>(entity =>
-        {
-            entity.HasNoKey();
-
-            entity.Property(e => e.Amount).HasColumnType("money");
-            entity.Property(e => e.Balance).HasColumnType("money");
-            entity.Property(e => e.FromAccount)
-                .HasMaxLength(10)
-                .IsFixedLength();
-            entity.Property(e => e.Info).HasMaxLength(50);
-            entity.Property(e => e.TransactionDate).HasColumnType("datetime");
             entity.Property(e => e.UserId)
                 .ValueGeneratedOnAdd()
                 .HasColumnName("UserID");
+            entity.Property(e => e.BalanceSavings).HasColumnType("decimal(18, 2)");
+
+            entity.HasOne(d => d.User).WithOne(p => p.SavingAccount)
+                .HasForeignKey<SavingAccount>(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_SavingAccounts_Users");
         });
 
         modelBuilder.Entity<User>(entity =>

@@ -1,28 +1,32 @@
-﻿using Banken2023_V2.Classes;
-using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Banken2023_V2.Models;
+﻿using Banken2023_V2.Models;
+using Banken2023_V2.UI;
 
 namespace Banken2023_V2.Repo
 {
     public class UserRepo
     {
-        private BankDbContext _connection;
+        //private BankDbContext _connection;
 
-        public UserRepo(BankDbContext connection)
+        //public UserRepo(BankDbContext connection)
+        //{
+        //    _connection = connection;
+        //}
+
+        DataAccess access = new DataAccess();
+
+        public void ValidateLogin(User attemptLogin)
         {
-            _connection = connection;
-        }
+            //bool valid = false;
+            Menu menu = new Menu();
+            var login = access.Login(attemptLogin);
 
-        public int ValidateLogin(User attemptLogin)
-        {
+            while (login == null)
+            {
+                Console.WriteLine("Kindly enter correct login info");
+            }
 
+            menu.AppMenu(attemptLogin);
+            
         }
     }
 }

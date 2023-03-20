@@ -1,39 +1,48 @@
 ﻿using Banken2023_V2.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Banken2023_V2.Repo;
 
 namespace Banken2023_V2.Repo
 {
-    internal class AccountRepo
+    public class AccountRepo
     {
         DataAccess access = new DataAccess();
-        public void transfer (string type, int id, int amount)
+
+        public Dictionary<CheckingAccount, SavingAccount> checkBalance(int id)
         {
-            if (type == "Savings")
+            CheckingAccount checking = access.GetChecking(id);
+            SavingAccount saving = access.GetSaving(id);
+
+            var listaccounts = new Dictionary<CheckingAccount, SavingAccount>()
             {
-                access.TransfertoCheckings(id, amount);
+                { checking, saving },
+            };
+
+            return listaccounts;
+        }
+
+        public void transfer (string type, int id, decimal amount)
+        {
+            CheckingAccount newChecking = new CheckingAccount(id, amount);
+            SavingAccount newSaving = new SavingAccount(id, amount);
+            if (type.ToLower() == "s")
+            {
+                access.TransfertoCheckings(newSaving, newChecking);
             }
 
-            else if (type == "Checking")
+            else if (type.ToLower() == "c")
             {
-                access.TransfertoSavings(id, amount);
+                access.TransfertoSavings(newChecking, newSaving);
             }
 
         }
 
-        //deposit och withdraw nedan kan bli samma funktion
-        public void withdraw (int id, int amount)
+        public void withdraw (CheckingAccount account)
         {
-            access.withdraw(id, amount);
+            access.withdraw(account);
         }
 
-        public void deposit (int id, int amount)
+        public void deposit (CheckingAccount account)
         {
-            access.deposit(id, amount);
+            access.deposit(account);
         }
 
     }

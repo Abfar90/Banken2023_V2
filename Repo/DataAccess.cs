@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Banken2023_V2.Models;
 using System.Data;
-using System.Data.SqlClient;
-using System.Configuration;
-using Banken2023_V2.Models;
 
 namespace Banken2023_V2.Repo
 {
@@ -14,84 +7,82 @@ namespace Banken2023_V2.Repo
     {
         private BankDbContext _connection;
 
-        public User Login(string username, string password)
+        public DataAccess()
         {
-            User userAttempt = _connection.Users.Where(x => x.Username == username && x.Password == password).SingleOrDefault();
-            return userAttempt;
+            _connection = new BankDbContext();
         }
 
-        public List<CheckingAccount> GetChecking (int id) 
+        public User Login(User user)
         {
-            return _connection.CheckingAccounts.Where(x => x.UserId == id).ToList();
+            return _connection.Users.SingleOrDefault(x => x.Username == user.Username && x.Password == user.Password);
         }
 
-        public List<SavingAccount> GetSaving (int id)
+        public CheckingAccount GetChecking(int id)
         {
-            return _connection.SavingAccounts.Where(x => x.UserId == id).ToList();
+            return _connection.CheckingAccounts.SingleOrDefault(c => c.UserId == id);
         }
 
-        public decimal [] TransfertoSavings (int id, decimal amount)
+        public SavingAccount GetSaving (int id)
         {
-            CheckingAccount fromAccount = _connection.CheckingAccounts.SingleOrDefault(c => c.UserId == id);
-
-            decimal newCheckingBalance = fromAccount.BalanceChecking - amount;
-
-            _connection.Entry(fromAccount.BalanceChecking).CurrentValues.SetValues(newCheckingBalance);
-
-            SavingAccount toAccount = _connection.SavingAccounts.SingleOrDefault(c => c.UserId == id);
-
-            decimal newSavingsBalance = toAccount.BalanceSavings - amount;
-
-            _connection.Entry(toAccount.BalanceSavings).CurrentValues.SetValues(newSavingsBalance);
-
-            decimal[] newbalances = { newCheckingBalance, newSavingsBalance };
-
-            return newbalances;
-
+            return _connection.SavingAccounts.SingleOrDefault(s => s.UserId == id);
         }
 
-        public decimal [] TransfertoCheckings(int id, decimal amount)
+        public void TransfertoSavings (CheckingAccount fromAccount, SavingAccount updatedRecipient)
         {
-            SavingAccount fromAccount = _connection.SavingAccounts.SingleOrDefault(c => c.UserId == id);
 
-            decimal newCheckingBalance = fromAccount.BalanceSavings - amount;
+            var oldChecking = _connection.CheckingAccounts.SingleOrDefault(c => c.UserId == fromAccount.UserId);
 
-            _connection.Entry(fromAccount.BalanceSavings).CurrentValues.SetValues(newCheckingBalance);
+            fromAccount.BalanceChecking = oldChecking.BalanceChecking - fromAccount.BalanceChecking;
 
-            CheckingAccount toAccount = _connection.CheckingAccounts.SingleOrDefault(c => c.UserId == id);
+            _connection.Entry(oldChecking).CurrentValues.SetValues(fromAccount);
 
-            decimal newSavingsBalance = fromAccount.BalanceSavings - amount;
+            SavingAccount oldRecipient = _connection.SavingAccounts.SingleOrDefault(s => s.UserId == updatedRecipient.UserId);
 
-            _connection.Entry(fromAccount.BalanceSavings).CurrentValues.SetValues(newSavingsBalance);
+            updatedRecipient.BalanceSavings += oldRecipient.BalanceSavings;
 
-            decimal[] newbalances = { newCheckingBalance, newSavingsBalance };
+            _connection.Entry(oldRecipient).CurrentValues.SetValues(updatedRecipient);
 
-            return newbalances;
+            _connection.SaveChanges();
 
         }
 
-        public decimal withdraw(int id, decimal amount)
+        public void TransfertoCheckings(SavingAccount fromAccount, CheckingAccount updatedRecipient)
         {
-            CheckingAccount account = _connection.CheckingAccounts.SingleOrDefault(c => c.UserId == id);
+            SavingAccount oldBalance = _connection.SavingAccounts.SingleOrDefault(c => c.UserId == fromAccount.UserId);
 
-            //lägg till logik som stoppar overdraft
+            fromAccount.BalanceSavings = oldBalance.BalanceSavings - fromAccount.BalanceSavings;
 
-            decimal newCheckingBalance = account.BalanceChecking - amount;
+            _connection.Entry(oldBalance).CurrentValues.SetValues(fromAccount);
 
-            _connection.Entry(account.BalanceChecking).CurrentValues.SetValues(newCheckingBalance);
+            CheckingAccount toAccount = _connection.CheckingAccounts.SingleOrDefault(c => c.UserId == updatedRecipient.UserId);
 
-            return newCheckingBalance;
+            updatedRecipient.BalanceChecking += toAccount.BalanceChecking;
+
+            _connection.Entry(toAccount).CurrentValues.SetValues(updatedRecipient);
+
+            _connection.SaveChanges();
         }
 
-        public decimal deposit(int id, decimal amount)
+        public void withdraw(CheckingAccount withdraw)
         {
-            CheckingAccount account = _connection.CheckingAccounts.SingleOrDefault(c => c.UserId == id);
+            CheckingAccount account = _connection.CheckingAccounts.SingleOrDefault(c => c.UserId == withdraw.UserId);
 
-            decimal newCheckingBalance = account.BalanceChecking - amount;
+            withdraw.BalanceChecking -= account.BalanceChecking;
 
-            _connection.Entry(account.BalanceChecking).CurrentValues.SetValues(newCheckingBalance);
+            _connection.Entry(account).CurrentValues.SetValues(withdraw);
 
-            return newCheckingBalance;
+            _connection.SaveChanges();
+        }
+
+        public void deposit(CheckingAccount deposit)
+        {
+            CheckingAccount account = _connection.CheckingAccounts.SingleOrDefault(c => c.UserId == deposit.UserId);
+
+            deposit.BalanceChecking += account.BalanceChecking;
+
+            _connection.Entry(account).CurrentValues.SetValues(deposit);
+
+            _connection.SaveChanges();
         }
     }
 }
